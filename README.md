@@ -26,7 +26,7 @@ Normally, installing a dedicated game server means installing SteamCMD, download
 * It downloads a ready-made "blueprint" (called an **image**) that has Valheim, Steam, and all necessary tools pre-installed.
 * When you run it, it boots inside a safe, isolated bubble (called a **container**).
 * It won't clutter your computer with extra software or conflict with your other files.
-* **Docker Compose** is simply a tool that reads our single settings sheet ([`docker-compose.yml`](file:///Users/jameslarson/Projects/valheim/docker-compose.yml)) and turns the server on or off with one command.
+* **Docker Compose** is simply a tool that reads our single settings sheet ([`docker-compose.yml`](docker-compose.yml)) and turns the server on or off with one command.
 
 ---
 
@@ -46,7 +46,7 @@ Normally, installing a dedicated game server means installing SteamCMD, download
 ### 1. Open Terminal in this folder
 In your Terminal or PowerShell window, navigate to this project folder. For example:
 ```bash
-cd /Users/jameslarson/Projects/valheim
+cd path/to/valheim
 ```
 *(Tip: On Mac, you can type `cd ` and drag this folder directly from Finder into your Terminal window!)*
 
@@ -124,7 +124,7 @@ If you prefer not using the command line, you can control everything using the *
 
 ## 🔍 Line-by-Line Breakdown of `docker-compose.yml`
 
-Here is the exact [`docker-compose.yml`](file:///Users/jameslarson/Projects/valheim/docker-compose.yml) file running your server, with an explanation for every single line:
+Here is the exact [`docker-compose.yml`](docker-compose.yml) file running your server, with an explanation for every single line:
 
 ```yaml
 1: services:
@@ -222,11 +222,11 @@ Docker containers are temporary—if you delete a container, everything inside i
   Starts the persistent storage mappings.
 
 * **`      - ./config:/config`** (Line 16)  
-  * Links the local [`config`](file:///Users/jameslarson/Projects/valheim/config) folder on your computer to `/config` inside the container.
+  * Links the local [`config`](./config) folder on your computer to `/config` inside the container.
   * **What goes here?** Your world save files (`worlds_local/`), admin lists (`adminlist.txt`), permitted player lists, and automatic server backups.
 
 * **`      - ./data:/opt/valheim`** (Line 17)  
-  * Links the local [`data`](file:///Users/jameslarson/Projects/valheim/data) folder on your computer to `/opt/valheim` inside the container.
+  * Links the local [`data`](./data) folder on your computer to `/opt/valheim` inside the container.
   * **What goes here?** The actual Valheim game installation files downloaded from Steam. Because these are saved here, the server doesn't need to re-download the entire 1 GB game every time it restarts.
 
 ---
@@ -292,7 +292,7 @@ config/backups/
 
 ### Manual Backup (Before Updates or Experiments)
 1. Stop the server (`docker compose down`).
-2. Copy the entire [`config`](file:///Users/jameslarson/Projects/valheim/config) folder.
+2. Copy the entire [`config`](./config) folder.
 3. Paste it to a safe place (like your Desktop, Google Drive, or an external drive).
 4. Start the server back up (`docker compose up -d`).
 
@@ -308,7 +308,7 @@ They consist of two files: `Dedicated.db` and `Dedicated.fwl`. To restore an old
 ## ❓ Troubleshooting & FAQ
 
 ### "I changed the server name or password, but it didn't update"
-Any time you edit [`docker-compose.yml`](file:///Users/jameslarson/Projects/valheim/docker-compose.yml), tell Docker to apply your changes by running:
+Any time you edit [`docker-compose.yml`](docker-compose.yml), tell Docker to apply your changes by running:
 ```bash
 docker compose up -d
 ```

@@ -3,6 +3,10 @@ services:
     image: ghcr.io/community-valheim-tools/valheim-server
     container_name: valheim-server
     platform: linux/amd64
+    cap_add:
+      - sys_nice
+    security_opt:
+      - seccomp=unconfined
     ports:
       - "2456:2456/udp"
       - "2457:2457/udp"
@@ -12,6 +16,7 @@ services:
       - SERVER_PASS=secret1234 # Must be 5+ characters and NOT contained in the server name
       - SERVER_PUBLIC=true
       - CROSSPLAY=false # Set to true if friends are playing on Xbox or PC Game Pass
+      - STEAM_PLATFORM=linux64
     volumes:
       - ./config:/config
       - ./data:/opt/valheim
