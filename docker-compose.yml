@@ -2,6 +2,7 @@ services:
   valheim:
     image: ghcr.io/community-valheim-tools/valheim-server
     container_name: valheim-server
+    platform: linux/amd64
     ports:
       - "2456:2456/udp"
       - "2457:2457/udp"
