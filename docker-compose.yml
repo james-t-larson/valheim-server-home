@@ -14,7 +14,7 @@ services:
       - SERVER_NAME=${SERVER_NAME:-My Valheim Server}
       - WORLD_NAME=${WORLD_NAME:-Dedicated}
       - SERVER_PASS=${SERVER_PASS:-secret1234} # Must be 5+ characters and NOT contained in the server name
-      - SERVER_PUBLIC=${SERVER_PUBLIC:-true}
+      - SERVER_PUBLIC=${SERVER_PUBLIC:-false}
       - CROSSPLAY=${CROSSPLAY:-false} # Set to true if friends are playing on Xbox or PC Game Pass
       - STEAM_PLATFORM=${STEAM_PLATFORM:-linux64}
     volumes:
