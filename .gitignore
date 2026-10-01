@@ -1,2 +1,6 @@
 # Valheim server data (downloaded game files)
 data/
+
+# Environment variables and secrets
+.env
+

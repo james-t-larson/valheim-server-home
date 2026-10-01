@@ -52,16 +52,35 @@ cd path/to/valheim
 
 ---
 
-### 2. Start the server
-To start the server, run:
+### 2. Start the server (Interactive Setup)
+To configure and start the server for the first time, run the interactive startup script:
 ```bash
-docker compose up -d
+./start.sh
 ```
 
-> **What does `-d` mean?**  
-> It stands for "detached". It means the server will run quietly in the background, freeing up your Terminal window so you can close it without shutting down the server.
+This friendly script will prompt you for:
+* **Ports**:
+  * Game Port (`2456:2456/udp`)
+  * Steam Query Port (`2457:2457/udp`)
+* **Server Environment Details**:
+  * `SERVER_NAME`: Server name (default: `My Valheim Server`)
+  * `WORLD_NAME`: World save name (default: `Dedicated`)
+  * `SERVER_PASS`: Password (default: `secret1234`, validated to be 5+ characters and not contained in your server name)
+  * `SERVER_PUBLIC`: Community browser visibility (default: `true`)
+  * `CROSSPLAY`: Xbox / PC Game Pass crossplay (default: `false`)
+  * `STEAM_PLATFORM`: Steam platform architecture (default: `linux64`)
+
+**What the script does under the hood:**
+1. Collects your answers (or keeps the defaults if you press `Enter`).
+2. Appends your configuration to the end of your `~/.bashrc` file.
+3. Creates a local `.env` file so Docker Compose works consistently across all shells.
+4. Exports the environment variables in your current shell.
+5. Starts the server container in the background (`docker compose up -d`)!
 
 The very first time you run this, Docker will download the necessary files (around 1–2 GB). Once finished, your server is booting up!
+
+> **Subsequent Starts**:  
+> In the future, you can simply run `./start.sh` again to update settings, or run `docker compose up -d` directly.
 
 ---
 
@@ -132,24 +151,29 @@ Here is the exact [`docker-compose.yml`](docker-compose.yml) file running your s
 3:     image: ghcr.io/community-valheim-tools/valheim-server
 4:     container_name: valheim-server
 5:     platform: linux/amd64
-6:     ports:
-7:       - "2456:2456/udp"
-8:       - "2457:2457/udp"
-9:     environment:
-10:       - SERVER_NAME=My Valheim Server
-11:       - WORLD_NAME=Dedicated
-12:       - SERVER_PASS=secret1234 # Must be 5+ characters and NOT contained in the server name
-13:       - SERVER_PUBLIC=true
-14:       - CROSSPLAY=false # Set to true if friends are playing on Xbox or PC Game Pass
-15:     volumes:
-16:       - ./config:/config
-17:       - ./data:/opt/valheim
-18:     restart: unless-stopped
+6:     cap_add:
+7:       - sys_nice
+8:     security_opt:
+9:       - seccomp=unconfined
+10:     ports:
+11:       - "${VALHEIM_PORT_1:-2456:2456/udp}"
+12:       - "${VALHEIM_PORT_2:-2457:2457/udp}"
+13:     environment:
+14:       - SERVER_NAME=${SERVER_NAME:-My Valheim Server}
+15:       - WORLD_NAME=${WORLD_NAME:-Dedicated}
+16:       - SERVER_PASS=${SERVER_PASS:-secret1234} # Must be 5+ characters and NOT contained in the server name
+17:       - SERVER_PUBLIC=${SERVER_PUBLIC:-true}
+18:       - CROSSPLAY=${CROSSPLAY:-false} # Set to true if friends are playing on Xbox or PC Game Pass
+19:       - STEAM_PLATFORM=${STEAM_PLATFORM:-linux64}
+20:     volumes:
+21:       - ./config:/config
+22:       - ./data:/opt/valheim
+23:     restart: unless-stopped
 ```
 
 ---
 
-### Section 1: The Basics (Lines 1–5)
+### Section 1: The Basics (Lines 1–9)
 
 * **`services:`** (Line 1)  
   Tells Docker: *"Here is the list of programs/services I want you to run."*
@@ -166,74 +190,84 @@ Here is the exact [`docker-compose.yml`](docker-compose.yml) file running your s
 * **`    platform: linux/amd64`** (Line 5)  
   Valheim's dedicated server is built for standard x86/amd64 PC processors. If you are on an Apple Silicon Mac (M1, M2, M3, M4), this line instructs Docker to emulate an x86 PC environment so the game server runs smoothly without errors.
 
+* **`    cap_add:`** & **`      - sys_nice`** (Lines 6–7)  
+  Grants the container permission to adjust process scheduling priority, keeping server game ticks steady under load.
+
+* **`    security_opt:`** & **`      - seccomp=unconfined`** (Lines 8–9)  
+  Permits required system calls so SteamCMD can download game updates smoothly within emulated Linux environments on Mac/ARM.
+
 ---
 
-### Section 2: Network Ports (Lines 6–8)
+### Section 2: Network Ports (Lines 10–12)
 
-* **`    ports:`** (Line 6)  
+* **`    ports:`** (Line 10)  
   Think of ports as "doors" or "channels" into your computer. By default, Docker containers are isolated from your home network. This section opens specific doors so Valheim players can talk to your server.
 
-* **`      - "2456:2456/udp"`** (Line 7)  
+* **`      - "${VALHEIM_PORT_1:-2456:2456/udp}"`** (Line 11)  
+  * **`${VALHEIM_PORT_1:-...}`**: Docker Compose syntax that checks if the `VALHEIM_PORT_1` environment variable was set (by `./start.sh`, `~/.bashrc`, or `.env`). If unset, it automatically defaults to `2456:2456/udp`.
   * **2456 (Host) : 2456 (Container)**: Forwards traffic from your computer's port 2456 into the container's port 2456.
   * **UDP**: The network protocol games use for fast, real-time player movement and combat.
   * **Purpose**: This is the primary game port players connect to.
 
-* **`      - "2457:2457/udp"`** (Line 8)  
-  The Steam Query port. Steam uses this port to ping your server, check player count, and display it in server lists.
+* **`      - "${VALHEIM_PORT_2:-2457:2457/udp}"`** (Line 12)  
+  The Steam Query port (default `2457:2457/udp`). Steam uses this port to ping your server, check player count, and display it in server lists.
 
 > [!NOTE]  
-> If you enable **Crossplay** (`CROSSPLAY=true`), you will also need to add port **2458:2458/udp** under `ports:` so console players can connect.
+> If you enable **Crossplay** (`CROSSPLAY=true`), console players join via PlayFab code, but if needed, port **2458:2458/udp** can also be forwarded.
 
 ---
 
-### Section 3: Game Settings & Configuration (Lines 9–14)
+### Section 3: Game Settings & Configuration (Lines 13–19)
 
-* **`    environment:`** (Line 9)  
-  These are the customizable knobs and dials passed into the Valheim server on startup.
+* **`    environment:`** (Line 13)  
+  These are the customizable knobs and dials passed into the Valheim server on startup. Each line uses `${VAR:-default}` syntax so that user responses configured by `./start.sh` (or stored in `~/.bashrc` / `.env`) are injected automatically:
 
-* **`      - SERVER_NAME=My Valheim Server`** (Line 10)  
+* **`      - SERVER_NAME=${SERVER_NAME:-My Valheim Server}`** (Line 14)  
   The public title of your server as it appears in the game's server browser. Feel free to rename this to anything you like (e.g., `Odin's Playground`).
 
-* **`      - WORLD_NAME=Dedicated`** (Line 11)  
+* **`      - WORLD_NAME=${WORLD_NAME:-Dedicated}`** (Line 15)  
   The name of your save file. If no world with this name exists, the server will automatically generate a brand new world with this name. If you have an existing world you want to transfer, you would match this name to your save file.
 
-* **`      - SERVER_PASS=secret1234`** (Line 12)  
+* **`      - SERVER_PASS=${SERVER_PASS:-secret1234}`** (Line 16)  
   The password required for players to join.  
   > [!WARNING]  
   > **Valheim Rules for Passwords:**  
   > 1. Must be **at least 5 characters** long.  
   > 2. Must **NOT** appear inside your `SERVER_NAME`. (For example, if your server name is `Valheim Server`, your password cannot be `Server`).
 
-* **`      - SERVER_PUBLIC=true`** (Line 13)  
+* **`      - SERVER_PUBLIC=${SERVER_PUBLIC:-true}`** (Line 17)  
   * `true`: Shows your server on the public Valheim/Steam community server list.  
   * `false`: Hides it from the public list. Players can still join directly if they know your IP address.
 
-* **`      - CROSSPLAY=false`** (Line 14)  
+* **`      - CROSSPLAY=${CROSSPLAY:-false}`** (Line 18)  
   * `false`: Only players on Steam (PC/Mac/Linux) can join.  
   * `true`: Enables Microsoft PlayFab crossplay, allowing friends on Xbox or PC Game Pass to join using a 6-digit Join Code.
 
+* **`      - STEAM_PLATFORM=${STEAM_PLATFORM:-linux64}`** (Line 19)  
+  Tells SteamCMD to download the 64-bit Linux server binaries.
+
 ---
 
-### Section 4: Data Storage & Persistence (Lines 15–17)
+### Section 4: Data Storage & Persistence (Lines 20–22)
 
 Docker containers are temporary—if you delete a container, everything inside it is erased. **Volumes** solve this by linking a folder on your real hard drive into the container:
 
-* **`    volumes:`** (Line 15)  
+* **`    volumes:`** (Line 20)  
   Starts the persistent storage mappings.
 
-* **`      - ./config:/config`** (Line 16)  
+* **`      - ./config:/config`** (Line 21)  
   * Links the local [`config`](./config) folder on your computer to `/config` inside the container.
   * **What goes here?** Your world save files (`worlds_local/`), admin lists (`adminlist.txt`), permitted player lists, and automatic server backups.
 
-* **`      - ./data:/opt/valheim`** (Line 17)  
+* **`      - ./data:/opt/valheim`** (Line 22)  
   * Links the local [`data`](./data) folder on your computer to `/opt/valheim` inside the container.
   * **What goes here?** The actual Valheim game installation files downloaded from Steam. Because these are saved here, the server doesn't need to re-download the entire 1 GB game every time it restarts.
 
 ---
 
-### Section 5: Reliability (Line 18)
+### Section 5: Reliability (Line 23)
 
-* **`    restart: unless-stopped`** (Line 18)  
+* **`    restart: unless-stopped`** (Line 23)  
   Tells Docker: *"If the game crashes or your computer restarts, automatically turn the Valheim server back on."*  
   The only time it will stay off is if you deliberately stopped it using `docker compose down` or Docker Desktop.
 
@@ -308,7 +342,7 @@ They consist of two files: `Dedicated.db` and `Dedicated.fwl`. To restore an old
 ## ❓ Troubleshooting & FAQ
 
 ### "I changed the server name or password, but it didn't update"
-Any time you edit [`docker-compose.yml`](docker-compose.yml), tell Docker to apply your changes by running:
+You can easily re-run `./start.sh` to update your configuration interactively, or edit your `.env` / `~/.bashrc` file. Then tell Docker to apply your changes by running:
 ```bash
 docker compose up -d
 ```

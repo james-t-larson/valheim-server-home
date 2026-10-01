@@ -8,15 +8,15 @@ services:
     security_opt:
       - seccomp=unconfined
     ports:
-      - "2456:2456/udp"
-      - "2457:2457/udp"
+      - "${VALHEIM_PORT_1:-2456:2456/udp}"
+      - "${VALHEIM_PORT_2:-2457:2457/udp}"
     environment:
-      - SERVER_NAME=My Valheim Server
-      - WORLD_NAME=Dedicated
-      - SERVER_PASS=secret1234 # Must be 5+ characters and NOT contained in the server name
-      - SERVER_PUBLIC=true
-      - CROSSPLAY=false # Set to true if friends are playing on Xbox or PC Game Pass
-      - STEAM_PLATFORM=linux64
+      - SERVER_NAME=${SERVER_NAME:-My Valheim Server}
+      - WORLD_NAME=${WORLD_NAME:-Dedicated}
+      - SERVER_PASS=${SERVER_PASS:-secret1234} # Must be 5+ characters and NOT contained in the server name
+      - SERVER_PUBLIC=${SERVER_PUBLIC:-true}
+      - CROSSPLAY=${CROSSPLAY:-false} # Set to true if friends are playing on Xbox or PC Game Pass
+      - STEAM_PLATFORM=${STEAM_PLATFORM:-linux64}
     volumes:
       - ./config:/config
       - ./data:/opt/valheim
