@@ -1,0 +1,148 @@
+# 🔍 Server Configuration & `docker-compose.yml` Breakdown
+
+This document provides a line-by-line explanation of the server configuration file [`docker-compose.yml`](../docker-compose.yml), explaining how settings are passed from environment variables into the container.
+
+---
+
+## 📄 The Full `docker-compose.yml` File
+
+```yaml
+services:
+  valheim:
+    image: ghcr.io/community-valheim-tools/valheim-server
+    container_name: valheim-server
+    platform: linux/amd64
+    cap_add:
+      - sys_nice
+    security_opt:
+      - seccomp=unconfined
+    ports:
+      - "${VALHEIM_PORT_1:-2456:2456/udp}"
+      - "${VALHEIM_PORT_2:-2457:2457/udp}"
+    environment:
+      - SERVER_NAME=${SERVER_NAME:-My Valheim Server}
+      - WORLD_NAME=${WORLD_NAME:-Dedicated}
+      - SERVER_PASS=${SERVER_PASS:-secret1234} # Must be 5+ characters and NOT contained in the server name
+      - SERVER_PUBLIC=${SERVER_PUBLIC:-false}
+      - CROSSPLAY=${CROSSPLAY:-false} # Set to true if friends are playing on Xbox or PC Game Pass
+      - STEAM_PLATFORM=${STEAM_PLATFORM:-linux64}
+    volumes:
+      - ./config:/config
+      - ./data:/opt/valheim
+    restart: unless-stopped
+```
+
+---
+
+## 🧩 Detailed Line-by-Line Explanation
+
+### Section 1: Service Basics
+
+* **`services:`**  
+  Tells Docker Compose that the following blocks define the individual services/applications to manage.
+
+* **`  valheim:`**  
+  The internal identifier for the Valheim service inside Docker Compose.
+
+* **`    image: ghcr.io/community-valheim-tools/valheim-server`**  
+  Specifies the Docker image to pull from GitHub Container Registry (`ghcr.io`). This community-maintained image includes:
+  - SteamCMD for automatic game updates.
+  - Automated world backup utilities.
+  - Graceful shutdown scripts to prevent world corruption.
+
+* **`    container_name: valheim-server`**  
+  The human-friendly name displayed in Docker Desktop and in `docker ps` outputs.
+
+* **`    platform: linux/amd64`**  
+  Specifies the x86-64 Linux architecture. This enables Docker on Apple Silicon Macs (M1/M2/M3/M4) to run the x86 binary using Rosetta 2 / QEMU emulation seamlessly.
+
+* **`    cap_add:`** & **`      - sys_nice`**  
+  Grants Linux scheduling priority capabilities (`CAP_SYS_NICE`). This allows the server process to prioritize game tick calculations under high CPU load, reducing in-game rubberbanding.
+
+* **`    security_opt:`** & **`      - seccomp=unconfined`**  
+  Disables seccomp syscall filtering inside the container. This prevents permission conflicts when SteamCMD downloads and executes Linux binaries in an emulated environment.
+
+---
+
+### Section 2: Network Ports
+
+* **`    ports:`**  
+  Maps ports from your host computer into the container.
+
+* **`      - "${VALHEIM_PORT_1:-2456:2456/udp}"`**  
+  - `${VALHEIM_PORT_1:-...}` checks if an environment variable is set (via [`.env`](../.env) or shell). If unset, defaults to `2456:2456/udp`.
+  - **Host Port (2456) : Container Port (2456)**: Traffic hitting port 2456 on your physical machine forwards directly to the server.
+  - **UDP Protocol**: UDP provides low-latency transmission required for real-time game physics and combat.
+  - **Function**: Primary game connection port.
+
+* **`      - "${VALHEIM_PORT_2:-2457:2457/udp}"`**  
+  - Steam Query port. Steam uses this port to check server health, query current player counts, and display the server in server browser lists.
+
+> [!NOTE]  
+> If you enable **Crossplay** (`CROSSPLAY=true`), you may also expose port **`2458:2458/udp`** if needed for direct connections, though players typically join via PlayFab Join Codes.
+
+---
+
+### Section 3: Environment Variables & Game Settings
+
+The `environment` section configures the Valheim server runtime options:
+
+| Variable | Default Value | Description |
+| :--- | :--- | :--- |
+| `SERVER_NAME` | `My Valheim Server` | The public name shown in the server list and in-game lobby. |
+| `WORLD_NAME` | `Dedicated` | Name of your world save file. If no file with this name exists, a new world generates automatically. |
+| `SERVER_PASS` | `secret1234` | Password required to join. See password rules below. |
+| `SERVER_PUBLIC` | `false` | `true` lists the server in the public Steam lobby; `false` keeps it unlisted. |
+| `CROSSPLAY` | `false` | Set to `true` to enable Microsoft PlayFab crossplay for Xbox and PC Game Pass players. |
+| `STEAM_PLATFORM` | `linux64` | Target platform architecture for SteamCMD binaries (`linux64`). |
+
+> [!WARNING]  
+> **Valheim Password Rules:**
+> 1. Must be **at least 5 characters** long.
+> 2. Must **NOT** appear inside `SERVER_NAME` (case-insensitive). For example, if your server name is `Odin Hall`, your password cannot be `Odin`.
+
+---
+
+### Section 4: Volumes (Data Persistence)
+
+Docker containers are ephemeral: if a container is removed or updated, any files written inside it are lost. **Volumes** bridge folders on your physical hard drive into the container:
+
+* **`    volumes:`**
+  - **`./config:/config`**:  
+    Maps the local [`config/`](../config) folder to `/config` in the container.
+    - **Stores**: World saves (`worlds_local/`), admin list (`adminlist.txt`), banned/permitted lists, and automatic zip backups (`backups/`).
+  - **`./data:/opt/valheim`**:  
+    Maps the local [`data/`](../data) folder to `/opt/valheim` in the container.
+    - **Stores**: The Valheim game server installation files (~1 GB). Because this is stored on your host drive, the server does not need to re-download the entire game every time it restarts.
+
+---
+
+### Section 5: Restart Reliability
+
+* **`    restart: unless-stopped`**  
+  Instructs Docker to automatically restart the server container if:
+  - The Valheim server process crashes.
+  - The Docker daemon restarts.
+  - Your host computer reboots.
+  
+  The server will only remain stopped if you explicitly shut it down using `docker compose down` or the Docker Desktop interface.
+
+---
+
+## ⚙️ How Configuration Variables are Loaded
+
+When you run `docker compose up -d`, variables are evaluated in this order of priority:
+1. **Interactive Script ([`start.sh`](../start.sh))**: Interactively prompts you and exports values.
+2. **Local [`.env`](../.env) file**: Written by `start.sh` so standard `docker compose` commands work across any shell session.
+3. **Shell profile (`~/.bashrc`)**: Exported globally for persistent bash sessions.
+4. **Fallback defaults**: Built directly into the `${VAR:-default}` syntax inside `docker-compose.yml`.
+
+---
+
+## 📚 Related Guides
+- [Quick Start & Operations Guide](getting-started.md)
+- [Docker Explained in Plain English](docker-explained.md)
+- [How to Connect to Your Server](connecting.md)
+- [Monitoring Logs with Dozzle](dozzle.md)
+- [World Backups & Restoration](backups.md)
+- [Troubleshooting & Admin Guide](troubleshooting.md)

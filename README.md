@@ -1,366 +1,115 @@
-# 🛡️ Valheim Dedicated Server Guide (Beginner Friendly)
+# 🛡️ Valheim Dedicated Server
 
-Welcome! This folder contains everything you need to run your very own private, dedicated **Valheim** server. 
+Welcome! This repository contains everything you need to run your very own private, dedicated **Valheim** server using Docker.
 
-Whether you want a persistent world for you and your friends so anyone can play even when you're offline, or you just want full control over your world saves, this guide will walk you through everything step-by-step—no programming experience required!
-
----
-
-## 🧭 Table of Contents
-1. [What is Docker? (In Plain English)](#-what-is-docker-in-plain-english)
-2. [What You Need Before Starting](#-what-you-need-before-starting)
-3. [Quick Start: Starting & Stopping the Server](#-quick-start-starting--stopping-the-server)
-4. [Using Docker Desktop (No Commands Needed)](#-using-docker-desktop-the-point-and-click-way)
-5. [Line-by-Line Breakdown of `docker-compose.yml`](#-line-by-line-breakdown-of-docker-composeyml)
-6. [How to Connect to Your Server](#-how-to-connect-to-your-server)
-7. [Backing Up Your World](#-backing-up-your-world)
-8. [Troubleshooting & Frequently Asked Questions](#-troubleshooting--faq)
+Whether you want a persistent world for you and your friends so anyone can play even when you're offline, or you just want full control over your world saves and backups, this project makes it easy to set up and manage—no server administration experience required!
 
 ---
 
-## 💡 What is Docker? (In Plain English)
-
-Normally, installing a dedicated game server means installing SteamCMD, downloading runtime libraries, setting up firewall rules, and configuring background services on your operating system.
-
-**Docker** changes that. Think of Docker as a **self-contained gaming console inside your computer**:
-* It downloads a ready-made "blueprint" (called an **image**) that has Valheim, Steam, and all necessary tools pre-installed.
-* When you run it, it boots inside a safe, isolated bubble (called a **container**).
-* It won't clutter your computer with extra software or conflict with your other files.
-* **Docker Compose** is simply a tool that reads our single settings sheet ([`docker-compose.yml`](docker-compose.yml)) and turns the server on or off with one command.
-
----
-
-## 📋 What You Need Before Starting
-
-1. **Docker Desktop installed and running**:
-   - Download it for Mac or Windows from [docker.com](https://www.docker.com/products/docker-desktop/).
-   - Make sure Docker Desktop is open. You should see a small whale icon in your Mac menu bar (top right) or Windows system tray (bottom right).
-2. **Terminal (Mac) or PowerShell / Command Prompt (Windows)**:
-   - On Mac: Press `Cmd + Space`, type `Terminal`, and press `Enter`.
-   - On Windows: Press `Windows Key`, type `PowerShell`, and press `Enter`.
-
----
-
-## 🚀 Quick Start: Starting & Stopping the Server
-
-### 1. Open Terminal in this folder
-In your Terminal or PowerShell window, navigate to this project folder. For example:
-```bash
-cd path/to/valheim
-```
-*(Tip: On Mac, you can type `cd ` and drag this folder directly from Finder into your Terminal window!)*
-
----
-
-### 2. Start the server (Interactive Setup)
-To configure and start the server for the first time, run the interactive startup script:
-```bash
-./start.sh
-```
-
-This friendly script will prompt you for:
-* **Ports**:
-  * Game Port (`2456:2456/udp`)
-  * Steam Query Port (`2457:2457/udp`)
-* **Server Environment Details**:
-  * `SERVER_NAME`: Server name (default: `My Valheim Server`)
-  * `WORLD_NAME`: World save name (default: `Dedicated`)
-  * `SERVER_PASS`: Password (default: `secret1234`, validated to be 5+ characters and not contained in your server name)
-  * `SERVER_PUBLIC`: Community browser visibility (default: `true`)
-  * `CROSSPLAY`: Xbox / PC Game Pass crossplay (default: `false`)
-  * `STEAM_PLATFORM`: Steam platform architecture (default: `linux64`)
-
-**What the script does under the hood:**
-1. Collects your answers (or keeps the defaults if you press `Enter`).
-2. Appends your configuration to the end of your `~/.bashrc` file.
-3. Creates a local `.env` file so Docker Compose works consistently across all shells.
-4. Exports the environment variables in your current shell.
-5. Starts the server container in the background (`docker compose up -d`)!
-
-The very first time you run this, Docker will download the necessary files (around 1–2 GB). Once finished, your server is booting up!
-
-> **Subsequent Starts**:  
-> In the future, you can simply run `./start.sh` again to update settings, or run `docker compose up -d` directly.
-
----
-
-### 3. Check if the server is running
-Run:
-```bash
-docker compose ps
-```
-Look at the **STATUS** column. If it says `Up`, your server is running.
-
----
-
-### 4. View server logs (See what the server is doing)
-To watch the server boot up or see player connections:
-```bash
-docker compose logs -f
-```
-
-> **How to exit the log view:**  
-> Press `Ctrl + C` on your keyboard. This stops *watching* the logs—it does **not** stop the server.
-
-> [!NOTE]  
-> When you first start the server, it usually takes **2 to 4 minutes** to download the latest Valheim game updates from Steam and generate the world. Wait until you see a log line mentioning `Game server connected` before trying to join.
-
----
-
-### 5. Stop the server safely
-When you're ready to shut down the server, run:
-```bash
-docker compose down
-```
-
-> [!IMPORTANT]  
-> Always use `docker compose down` (or the Stop button in Docker Desktop). This sends a clean shutdown signal to Valheim so it saves your world and character progress safely before closing.
-
----
-
-### 6. Updating the server
-When Iron Gate releases a new Valheim patch, update your server easily:
-```bash
-docker compose pull
-docker compose up -d
-```
-Docker will grab the latest update and restart the server automatically.
-
----
-
-## 🖱️ Using Docker Desktop (The Point-and-Click Way)
-
-If you prefer not using the command line, you can control everything using the **Docker Desktop** app:
-
-1. Open **Docker Desktop**.
-2. Click on the **Containers** tab on the left sidebar.
-3. You will see an entry named `valheim` (or `valheim-server`).
-4. **To start**: Click the green **Play** button (▶️).
-5. **To stop**: Click the square **Stop** button (⏹️).
-6. **To see logs**: Click on the container name to view live console output.
-
----
-
-## 🔍 Line-by-Line Breakdown of `docker-compose.yml`
-
-Here is the exact [`docker-compose.yml`](docker-compose.yml) file running your server, with an explanation for every single line:
-
-```yaml
-1: services:
-2:   valheim:
-3:     image: ghcr.io/community-valheim-tools/valheim-server
-4:     container_name: valheim-server
-5:     platform: linux/amd64
-6:     cap_add:
-7:       - sys_nice
-8:     security_opt:
-9:       - seccomp=unconfined
-10:     ports:
-11:       - "${VALHEIM_PORT_1:-2456:2456/udp}"
-12:       - "${VALHEIM_PORT_2:-2457:2457/udp}"
-13:     environment:
-14:       - SERVER_NAME=${SERVER_NAME:-My Valheim Server}
-15:       - WORLD_NAME=${WORLD_NAME:-Dedicated}
-16:       - SERVER_PASS=${SERVER_PASS:-secret1234} # Must be 5+ characters and NOT contained in the server name
-17:       - SERVER_PUBLIC=${SERVER_PUBLIC:-true}
-18:       - CROSSPLAY=${CROSSPLAY:-false} # Set to true if friends are playing on Xbox or PC Game Pass
-19:       - STEAM_PLATFORM=${STEAM_PLATFORM:-linux64}
-20:     volumes:
-21:       - ./config:/config
-22:       - ./data:/opt/valheim
-23:     restart: unless-stopped
-```
-
----
-
-### Section 1: The Basics (Lines 1–9)
-
-* **`services:`** (Line 1)  
-  Tells Docker: *"Here is the list of programs/services I want you to run."*
-
-* **`  valheim:`** (Line 2)  
-  The internal nickname for this service in Docker Compose.
-
-* **`    image: ghcr.io/community-valheim-tools/valheim-server`** (Line 3)  
-  This tells Docker where to download the pre-built server package from. It uses the popular, actively maintained community image hosted on GitHub's Container Registry (`ghcr.io`). It comes pre-configured with SteamCMD, automated backup support, and clean startup scripts.
-
-* **`    container_name: valheim-server`** (Line 4)  
-  The friendly display name that shows up in the Docker Desktop application list.
-
-* **`    platform: linux/amd64`** (Line 5)  
-  Valheim's dedicated server is built for standard x86/amd64 PC processors. If you are on an Apple Silicon Mac (M1, M2, M3, M4), this line instructs Docker to emulate an x86 PC environment so the game server runs smoothly without errors.
-
-* **`    cap_add:`** & **`      - sys_nice`** (Lines 6–7)  
-  Grants the container permission to adjust process scheduling priority, keeping server game ticks steady under load.
-
-* **`    security_opt:`** & **`      - seccomp=unconfined`** (Lines 8–9)  
-  Permits required system calls so SteamCMD can download game updates smoothly within emulated Linux environments on Mac/ARM.
-
----
-
-### Section 2: Network Ports (Lines 10–12)
-
-* **`    ports:`** (Line 10)  
-  Think of ports as "doors" or "channels" into your computer. By default, Docker containers are isolated from your home network. This section opens specific doors so Valheim players can talk to your server.
-
-* **`      - "${VALHEIM_PORT_1:-2456:2456/udp}"`** (Line 11)  
-  * **`${VALHEIM_PORT_1:-...}`**: Docker Compose syntax that checks if the `VALHEIM_PORT_1` environment variable was set (by `./start.sh`, `~/.bashrc`, or `.env`). If unset, it automatically defaults to `2456:2456/udp`.
-  * **2456 (Host) : 2456 (Container)**: Forwards traffic from your computer's port 2456 into the container's port 2456.
-  * **UDP**: The network protocol games use for fast, real-time player movement and combat.
-  * **Purpose**: This is the primary game port players connect to.
-
-* **`      - "${VALHEIM_PORT_2:-2457:2457/udp}"`** (Line 12)  
-  The Steam Query port (default `2457:2457/udp`). Steam uses this port to ping your server, check player count, and display it in server lists.
-
-> [!NOTE]  
-> If you enable **Crossplay** (`CROSSPLAY=true`), console players join via PlayFab code, but if needed, port **2458:2458/udp** can also be forwarded.
-
----
-
-### Section 3: Game Settings & Configuration (Lines 13–19)
-
-* **`    environment:`** (Line 13)  
-  These are the customizable knobs and dials passed into the Valheim server on startup. Each line uses `${VAR:-default}` syntax so that user responses configured by `./start.sh` (or stored in `~/.bashrc` / `.env`) are injected automatically:
-
-* **`      - SERVER_NAME=${SERVER_NAME:-My Valheim Server}`** (Line 14)  
-  The public title of your server as it appears in the game's server browser. Feel free to rename this to anything you like (e.g., `Odin's Playground`).
-
-* **`      - WORLD_NAME=${WORLD_NAME:-Dedicated}`** (Line 15)  
-  The name of your save file. If no world with this name exists, the server will automatically generate a brand new world with this name. If you have an existing world you want to transfer, you would match this name to your save file.
-
-* **`      - SERVER_PASS=${SERVER_PASS:-secret1234}`** (Line 16)  
-  The password required for players to join.  
-  > [!WARNING]  
-  > **Valheim Rules for Passwords:**  
-  > 1. Must be **at least 5 characters** long.  
-  > 2. Must **NOT** appear inside your `SERVER_NAME`. (For example, if your server name is `Valheim Server`, your password cannot be `Server`).
-
-* **`      - SERVER_PUBLIC=${SERVER_PUBLIC:-true}`** (Line 17)  
-  * `true`: Shows your server on the public Valheim/Steam community server list.  
-  * `false`: Hides it from the public list. Players can still join directly if they know your IP address.
-
-* **`      - CROSSPLAY=${CROSSPLAY:-false}`** (Line 18)  
-  * `false`: Only players on Steam (PC/Mac/Linux) can join.  
-  * `true`: Enables Microsoft PlayFab crossplay, allowing friends on Xbox or PC Game Pass to join using a 6-digit Join Code.
-
-* **`      - STEAM_PLATFORM=${STEAM_PLATFORM:-linux64}`** (Line 19)  
-  Tells SteamCMD to download the 64-bit Linux server binaries.
-
----
-
-### Section 4: Data Storage & Persistence (Lines 20–22)
-
-Docker containers are temporary—if you delete a container, everything inside it is erased. **Volumes** solve this by linking a folder on your real hard drive into the container:
-
-* **`    volumes:`** (Line 20)  
-  Starts the persistent storage mappings.
-
-* **`      - ./config:/config`** (Line 21)  
-  * Links the local [`config`](./config) folder on your computer to `/config` inside the container.
-  * **What goes here?** Your world save files (`worlds_local/`), admin lists (`adminlist.txt`), permitted player lists, and automatic server backups.
-
-* **`      - ./data:/opt/valheim`** (Line 22)  
-  * Links the local [`data`](./data) folder on your computer to `/opt/valheim` inside the container.
-  * **What goes here?** The actual Valheim game installation files downloaded from Steam. Because these are saved here, the server doesn't need to re-download the entire 1 GB game every time it restarts.
-
----
-
-### Section 5: Reliability (Line 23)
-
-* **`    restart: unless-stopped`** (Line 23)  
-  Tells Docker: *"If the game crashes or your computer restarts, automatically turn the Valheim server back on."*  
-  The only time it will stay off is if you deliberately stopped it using `docker compose down` or Docker Desktop.
-
----
-
-## 🎮 How to Connect to Your Server
-
-### 1. Playing on the Same Computer Hosting the Server
-1. Launch **Valheim**.
-2. Click **Start Game**, select your character.
-3. Click the **Join Game** tab.
-4. Click **Join IP** (at the bottom).
-5. Enter: `127.0.0.1:2456` or `localhost:2456`.
-6. Enter your password (`secret1234`).
-
----
-
-### 2. Friends on the Same Home Wi-Fi / Local Network (LAN)
-1. Find your computer's local IP address:
-   - **Mac**: System Settings > Wi-Fi > Details > Look for `IP address` (e.g. `192.168.1.45`).
-   - **Windows**: Settings > Network & Internet > Properties > Look for `IPv4 address`.
-2. Have your friends click **Join IP** in Valheim and enter:
-   ```text
-   <YOUR-LOCAL-IP>:2456
+## ⚡ Quick Start (Up in 60 Seconds)
+
+1. **Ensure Docker Desktop is running** on your computer.
+2. **Open Terminal** in this folder and run the interactive setup script:
+   ```bash
+   ./start.sh
    ```
-   *(Example: `192.168.1.45:2456`)*
-
----
-
-### 3. Friends Connecting Over the Internet
-To let friends outside your house join:
-
-1. **Port Forwarding on your Router**:
-   - Log in to your home Wi-Fi router's admin settings (typically `192.168.1.1` or `192.168.0.1` in your browser).
-   - Find the **Port Forwarding** section.
-   - Forward ports **2456** and **2457** (Protocol: **UDP**) to your hosting computer's local IP address.
-   - *(If using Crossplay, also forward port **2458** UDP).*
-2. **Find your Public IP**:
-   - Google ["what is my ip"](https://www.google.com/search?q=what+is+my+ip).
-3. **Give your friends**:
-   ```text
-   <YOUR-PUBLIC-IP>:2456
+3. Follow the friendly prompts (or press `Enter` to keep the default settings).
+4. The server will launch in the background. Check its status with:
+   ```bash
+   docker compose ps
    ```
 
----
-
-## 💾 Backing Up Your World
-
-Nothing is worse than losing 100 hours of Viking architecture! Here's how to keep your world safe:
-
-### Automatic Backups
-The server image has **built-in automatic backups**. It creates zip archives of your world automatically and saves them in:
-```text
-config/backups/
-```
-
-### Manual Backup (Before Updates or Experiments)
-1. Stop the server (`docker compose down`).
-2. Copy the entire [`config`](./config) folder.
-3. Paste it to a safe place (like your Desktop, Google Drive, or an external drive).
-4. Start the server back up (`docker compose up -d`).
-
-If you ever need to restore:
-Your active world save files are located inside:
-```text
-config/worlds_local/
-```
-They consist of two files: `Dedicated.db` and `Dedicated.fwl`. To restore an old save, simply replace those two files with your backup copies while the server is stopped.
+### Daily Commands Cheat Sheet
+| Task | Command |
+| :--- | :--- |
+| **Start Server** | `docker compose up -d` (or `./start.sh`) |
+| **Check Status** | `docker compose ps` |
+| **View Live Logs** | `docker compose logs -f` |
+| **Stop Server Safely** | `docker compose down` |
+| **Update Server & Game** | `docker compose pull && docker compose up -d` |
 
 ---
 
-## ❓ Troubleshooting & FAQ
+## 📚 Documentation Guides
 
-### "I changed the server name or password, but it didn't update"
-You can easily re-run `./start.sh` to update your configuration interactively, or edit your `.env` / `~/.bashrc` file. Then tell Docker to apply your changes by running:
+To keep things organized and easy to navigate, detailed instructions have been broken down into dedicated guides:
+
+| Guide | Description |
+| :--- | :--- |
+| 🚀 **[Quick Start & Operations Guide](docs/getting-started.md)** | Step-by-step startup, interactive setup, stopping, updates, and using the Docker Desktop GUI. |
+| 💡 **[Docker Explained in Plain English](docs/docker-explained.md)** | What Docker is, images vs. containers vs. volumes, and Apple Silicon Mac emulation. |
+| 🔍 **[Server Configuration & `docker-compose.yml`](docs/configuration.md)** | Line-by-line breakdown of configuration settings, ports, and environment variables. |
+| 🎮 **[How to Connect to Your Server](docs/connecting.md)** | Connecting locally (`localhost`), on home Wi-Fi (LAN), over the Internet, and Crossplay. |
+| 📊 **[Log Monitoring with Dozzle](docs/dozzle.md)** | Real-time web-based Docker log viewing and container statistics via [dozzle.dev](https://dozzle.dev). |
+| 💾 **[World Backups & Restoration](docs/backups.md)** | Automatic backup folder, manual snapshots, save locations, and restoring old saves. |
+| ❓ **[Troubleshooting & Administrator Guide](docs/troubleshooting.md)** | Adding server admins (`adminlist.txt`), fixing common connection issues, and error diagnosis. |
+
+---
+
+## 📊 Live Web Monitoring with Dozzle
+
+Instead of watching logs in a terminal window, you can use [Dozzle](https://dozzle.dev)—a lightweight (~7 MB), real-time, browser-based log viewer and container monitor.
+
+### Setting Up Dozzle
+Following the instructions from [dozzle.dev](https://dozzle.dev), you can launch Dozzle with a single command:
+
 ```bash
-docker compose up -d
+docker run --name dozzle -d \
+  --volume=/var/run/docker.sock:/var/run/docker.sock \
+  -p 8080:8080 \
+  amir20/dozzle:latest
 ```
-Docker will detect the change, restart the container, and use your new settings.
 
-### "Docker says: Cannot connect to the Docker daemon"
-This simply means **Docker Desktop is not currently running**. Open the Docker Desktop app from your Applications/Start Menu, wait 10 seconds for the little whale icon to turn steady, and try your command again.
+*(Alternatively, you can add Dozzle directly into your [`docker-compose.yml`](docs/configuration.md)—see [Dozzle Guide](docs/dozzle.md) for the compose snippet).*
 
-### "My friends can't see or connect to the server"
-1. **Patience**: When the server first starts, it can take 2–3 minutes to register with Steam. Run `docker compose logs -f` and wait until you see `Game server connected`.
-2. **Password rule**: Verify that your password has 5+ characters and does not appear within the server name.
-3. **Firewall / Port Forward**: Ensure UDP ports 2456 and 2457 are forwarded on your router to your host computer.
-4. **Mac Firewall**: Go to System Settings > Network > Firewall, and ensure incoming connections for Docker are allowed.
+### Accessing Dozzle from a Local Machine
 
-### "How do I make myself an Admin?"
-1. Open the file `config/adminlist.txt` in a text editor (this file is created after the server runs for the first time).
-2. Add your **Steam64 ID** (a 17-digit number you can find on [steamid.io](https://steamid.io/)) on a new line.
-3. Save the file. You will now have access to in-game admin console commands (`F5`).
+* **On the same machine running Docker**:
+  Open your web browser and go to:
+  ```text
+  http://localhost:8080
+  ```
+  *(or `http://127.0.0.1:8080`)*
+
+* **From another computer, tablet, or phone on your local network (LAN)**:
+  1. Find your host computer's local network IP address:
+     - **macOS**: Run `ipconfig getifaddr en0` in Terminal (or check **System Settings > Wi-Fi > Details**).
+     - **Windows**: Run `ipconfig` in PowerShell and look for **IPv4 Address**.
+     - **Linux**: Run `hostname -I`.
+  2. Open any web browser on your second device and visit:
+     ```text
+     http://<HOST-LOCAL-IP>:8080
+     ```
+     *(Example: `http://192.168.1.45:8080`)*
+
+From the Dozzle web dashboard, simply click **`valheim-server`** to watch live console activity, verify when the game server has connected (`Game server connected`), and monitor memory and CPU usage.
+
+👉 For complete instructions and configuration options, see the **[Dozzle Monitoring Guide](docs/dozzle.md)**.
+
+---
+
+## 📁 Repository Structure
+
+```text
+valheim/
+├── .env                  # Auto-generated environment variables (from start.sh)
+├── docker-compose.yml    # Docker Compose server configuration
+├── start.sh              # Interactive configuration and startup script
+├── README.md             # Project overview and documentation index
+├── config/               # Persistent server configuration, saves & backups (Docker volume)
+│   ├── adminlist.txt     # Steam64 IDs of server admins
+│   ├── backups/          # Automatic world save zip backups
+│   └── worlds_local/     # Active world save files (.db and .fwl)
+├── data/                 # Downloaded Valheim game server files (Docker volume)
+└── docs/                 # Detailed documentation guides
+    ├── getting-started.md
+    ├── docker-explained.md
+    ├── configuration.md
+    ├── connecting.md
+    ├── dozzle.md
+    ├── backups.md
+    └── troubleshooting.md
+```
 
 ---
 
