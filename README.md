@@ -6,6 +6,34 @@ Whether you want a persistent world for you and your friends so anyone can play 
 
 ---
 
+## 🏗️ Under the Hood: Powered by `valheim-server-docker`
+
+This project is built directly on top of [**community-valheim-tools/valheim-server-docker**](https://github.com/community-valheim-tools/valheim-server-docker), a popular, production-ready, open-source Docker container image (`ghcr.io/community-valheim-tools/valheim-server`) maintained by the Valheim community.
+
+### What is `valheim-server-docker`?
+
+[**`valheim-server-docker`**](https://github.com/community-valheim-tools/valheim-server-docker) is an all-in-one container solution designed specifically for hosting dedicated Valheim game servers. Instead of requiring you to manually install SteamCMD, configure Linux runtime dependencies, manage cron jobs, or worry about corrupted world saves when stopping the server, it packages everything into a standardized, automated environment:
+
+* 🔄 **Automatic Game Updates**: Downloads the official Valheim dedicated server files directly via SteamCMD on startup and checks for updates automatically.
+* 💾 **Automated World Backups**: Features an integrated backup utility that periodically compresses and archives your world saves into timestamped `.zip` files in your mounted `config/backups` directory without interrupting gameplay.
+* 🌐 **Crossplay Ready**: Built-in support for crossplay (`CROSSPLAY=true`), enabling seamless multiplayer between Steam, Xbox, and PC Game Pass players.
+* 🧩 **Modding Support**: First-class support for mod frameworks, including [BepInExPack Valheim](https://github.com/community-valheim-tools/valheim-server-docker#bepinexpack-valheim) and [ValheimPlus](https://github.com/community-valheim-tools/valheim-server-docker#valheimplus).
+* 🪝 **Event Hooks & Discord Webhooks**: Built-in triggers for custom scripts and Discord notifications on server lifecycle events (startup, shutdown, player joins/leaves, game updates, and backup creation).
+* 🛡️ **Process Supervision & Graceful Shutdowns**: An internal supervisor monitors server health and ensures clean shutdowns so world state is always saved properly before the container exits.
+
+### How This Repository Fits In
+
+While the upstream [`valheim-server-docker`](https://github.com/community-valheim-tools/valheim-server-docker) image provides the core game server engine, **this repository provides a turnkey, beginner-friendly local orchestration layer**:
+
+1. **Interactive Setup Script (`./start.sh`)**: Prompts you for basic settings (server name, world name, password, crossplay, port) and auto-generates your `.env` configuration file.
+2. **Pre-configured `docker-compose.yml`**: Configured with persistent volumes (`config/` and `data/`), proper permissions (`CAP_SYS_NICE`), and platform emulation for Apple Silicon Macs (`linux/amd64`).
+3. **Live Web Log Viewer**: Bundles [Dozzle](https://dozzle.dev) on port 8080 out of the box so you can view live console logs and monitor container CPU/RAM directly in your web browser.
+4. **Comprehensive Documentation**: Plain-English guides for first-time Docker users, networking, backups, and troubleshooting.
+
+For advanced configurations, environment variables, or custom hook scripts, check out the [upstream repository on GitHub](https://github.com/community-valheim-tools/valheim-server-docker).
+
+---
+
 ## ⚡ Quick Start (Up in 60 Seconds)
 
 1. **Ensure Docker Desktop is running** on your computer.
@@ -44,6 +72,7 @@ To keep things organized and easy to navigate, detailed instructions have been b
 | 📊 **[Log Monitoring with Dozzle](docs/dozzle.md)** | Real-time web-based Docker log viewing and container statistics via [dozzle.dev](https://dozzle.dev). |
 | 💾 **[World Backups & Restoration](docs/backups.md)** | Automatic backup folder, manual snapshots, save locations, and restoring old saves. |
 | ❓ **[Troubleshooting & Administrator Guide](docs/troubleshooting.md)** | Adding server admins (`adminlist.txt`), fixing common connection issues, and error diagnosis. |
+| 🌐 **[Upstream Image Documentation](https://github.com/community-valheim-tools/valheim-server-docker)** | Official documentation for the underlying `valheim-server-docker` image (advanced settings, modding, webhooks). |
 
 ---
 

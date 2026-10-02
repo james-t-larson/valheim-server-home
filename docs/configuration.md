@@ -56,7 +56,7 @@ services:
   The internal identifier for the Valheim service inside Docker Compose.
 
 * **`    image: ghcr.io/community-valheim-tools/valheim-server`**  
-  Specifies the Docker image to pull from GitHub Container Registry (`ghcr.io`). This community-maintained image includes:
+  Specifies the Docker image to pull from GitHub Container Registry (`ghcr.io`). This community-maintained image (hosted on GitHub at [community-valheim-tools/valheim-server-docker](https://github.com/community-valheim-tools/valheim-server-docker)) includes:
   - SteamCMD for automatic game updates.
   - Automated world backup utilities.
   - Graceful shutdown scripts to prevent world corruption.
