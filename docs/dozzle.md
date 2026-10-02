@@ -19,23 +19,27 @@
 
 Setting up Dozzle takes less than 30 seconds. You can run it either as a standalone one-liner command or add it directly to your `docker-compose.yml`.
 
-### Option 1: Standalone Docker Run Command (Recommended Quick Start)
+### Option 1: Standalone Docker Run Command (Recommended)
 
-Open your terminal and run the official command from [dozzle.dev](https://dozzle.dev):
+To run Dozzle with **Container Actions** enabled (allowing you to Start, Stop, and Restart containers from the web browser UI), run:
 
 ```bash
 docker run --name dozzle -d \
   --volume=/var/run/docker.sock:/var/run/docker.sock \
   -p 8080:8080 \
-  amir20/dozzle:latest
+  amir20/dozzle:latest \
+  --enable-actions
 ```
+
+*(You can also use the environment variable `-e DOZZLE_ENABLE_ACTIONS=true` instead of the `--enable-actions` flag).*
 
 #### What this command does:
 * `--name dozzle`: Names the container `dozzle`.
 * `-d`: Runs the container in the background (detached mode).
-* `--volume=/var/run/docker.sock:/var/run/docker.sock`: Mounts the host Docker socket so Dozzle can read container events and logs in real time.
+* `--volume=/var/run/docker.sock:/var/run/docker.sock`: Mounts the host Docker socket so Dozzle can read container events and send lifecycle commands (start/stop/restart).
 * `-p 8080:8080`: Forwards port `8080` from your host computer into the container.
 * `amir20/dozzle:latest`: Pulls the official, lightweight image from Docker Hub.
+* `--enable-actions`: **Enables container management in the web UI** (Start, Stop, Restart, and Update).
 
 ---
 
@@ -53,9 +57,11 @@ services:
     image: amir20/dozzle:latest
     container_name: dozzle
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "8080:8080"
+    environment:
+      - DOZZLE_ENABLE_ACTIONS=true
     restart: unless-stopped
 ```
 
@@ -63,6 +69,20 @@ Then start both services with:
 ```bash
 docker compose up -d
 ```
+
+---
+
+## 🎮 Container Actions from the Web UI
+
+When `--enable-actions` (or `DOZZLE_ENABLE_ACTIONS=true`) is active, Dozzle displays action buttons next to each container in the web interface:
+
+* **▶️ Start**: Turn on stopped containers without opening terminal or Docker Desktop.
+* **⏹️ Stop**: Gracefully send a stop signal to containers.
+* **🔄 Restart**: Quickly restart a container (e.g. after changing settings).
+* **⬆️ Update**: Check and pull the newest container image.
+
+> [!IMPORTANT]  
+> For container actions to work, `/var/run/docker.sock` must be mounted with write permissions (i.e. **without** the `:ro` read-only flag), because Docker requires write access to execute container lifecycle commands.
 
 ---
 
@@ -156,8 +176,8 @@ If port `8080` is already used by another application on your computer:
   ```
 * Access it at `http://localhost:8888` (or `http://<HOST-IP>:8888`).
 
-### Read-Only Docker Socket
-For enhanced security, mount the Docker socket as read-only (`:ro`):
+### Read-Only Mode (View-Only / Disables Actions)
+If you do not want container actions enabled and prefer Dozzle to have strictly view-only access, omit `--enable-actions` and mount the Docker socket as read-only (`:ro`):
 ```bash
 docker run --name dozzle -d \
   --volume=/var/run/docker.sock:/var/run/docker.sock:ro \

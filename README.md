@@ -51,16 +51,17 @@ To keep things organized and easy to navigate, detailed instructions have been b
 Instead of watching logs in a terminal window, you can use [Dozzle](https://dozzle.dev)—a lightweight (~7 MB), real-time, browser-based log viewer and container monitor.
 
 ### Setting Up Dozzle
-Following the instructions from [dozzle.dev](https://dozzle.dev), you can launch Dozzle with a single command:
+Following the instructions from [dozzle.dev](https://dozzle.dev), you can launch Dozzle with container management actions (Start, Stop, Restart) enabled with a single command:
 
 ```bash
 docker run --name dozzle -d \
   --volume=/var/run/docker.sock:/var/run/docker.sock \
   -p 8080:8080 \
-  amir20/dozzle:latest
+  amir20/dozzle:latest \
+  --enable-actions
 ```
 
-*(Alternatively, you can add Dozzle directly into your [`docker-compose.yml`](docs/configuration.md)—see [Dozzle Guide](docs/dozzle.md) for the compose snippet).*
+*(Note: `--enable-actions` enables container start/stop/restart buttons in the Dozzle web UI. You can also set this via `-e DOZZLE_ENABLE_ACTIONS=true` or in [`docker-compose.yml`](docs/configuration.md)—see [Dozzle Guide](docs/dozzle.md) for details).*
 
 ### Accessing Dozzle from a Local Machine
 
