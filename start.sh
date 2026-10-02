@@ -174,6 +174,7 @@ SERVER_PASS="${SERVER_PASS}"
 SERVER_PUBLIC="${SERVER_PUBLIC}"
 CROSSPLAY="${CROSSPLAY}"
 STEAM_PLATFORM="${STEAM_PLATFORM}"
+DOZZLE_PORT="${DOZZLE_PORT:-8080}"
 EOF
 echo "Saved local environment file ($ENV_FILE)."
 
@@ -186,6 +187,7 @@ export SERVER_PASS
 export SERVER_PUBLIC
 export CROSSPLAY
 export STEAM_PLATFORM
+export DOZZLE_PORT="${DOZZLE_PORT:-8080}"
 
 echo "Environment variables set successfully!"
 echo ""
@@ -200,7 +202,8 @@ echo "=========================================================="
 docker compose ps
 echo ""
 echo "Helpful tips:"
-echo "  • View live logs:      docker compose logs -f"
-echo "  • Stop the server:     docker compose down"
-echo "  • Restart the server:  docker compose restart"
+echo "  • View live logs (CLI):  docker compose logs -f"
+echo "  • Web log viewer:        http://localhost:${DOZZLE_PORT:-8080} (Dozzle)"
+echo "  • Stop the server:       docker compose down"
+echo "  • Restart the server:    docker compose restart"
 echo ""

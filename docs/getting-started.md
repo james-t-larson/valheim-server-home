@@ -50,7 +50,7 @@ The script guides you through configuring all essential server parameters (press
 2. Writes persistent settings to `~/.bashrc`.
 3. Creates a local [`.env`](../.env) file so Docker Compose works consistently.
 4. Exports variables to your current shell.
-5. Launches the server in background daemon mode (`docker compose up -d`).
+5. Launches both the Valheim server and the Dozzle log viewer in background daemon mode (`docker compose up -d`).
 
 > [!NOTE]  
 > The very first time you launch the server, Docker downloads the image and Steam downloads the Valheim game server files (~1–2 GB total). This usually takes **2 to 4 minutes**. Wait until you see `Game server connected` in the logs before connecting.
@@ -59,17 +59,27 @@ The script guides you through configuring all essential server parameters (press
 
 ## 🔍 Step 3: Checking Server Status
 
-To check if the container is running:
+To check if the containers are running:
 ```bash
 docker compose ps
 ```
 
-Under the **STATUS** column, you should see `Up` (e.g. `Up 2 minutes`).
+Under the **STATUS** column, you should see both `valheim-server` and `dozzle` marked as `Up` (e.g. `Up 2 minutes`).
 
 ---
 
 ## 📜 Step 4: Viewing Server Logs
 
+You can view your server logs using either your web browser or terminal:
+
+### Option A: Web Browser via Dozzle (Recommended)
+Open your browser and navigate to:
+```text
+http://localhost:8080
+```
+Dozzle launches automatically alongside your server. It provides real-time log streaming, search, memory and CPU stats, and container controls. Simply click **`valheim-server`** to watch boot progress and player events.
+
+### Option B: Terminal CLI
 To stream live logs in your terminal:
 ```bash
 docker compose logs -f
@@ -77,8 +87,7 @@ docker compose logs -f
 
 * **To exit the log viewer**: Press `Ctrl + C`. This stops viewing logs; the server keeps running uninterrupted in the background.
 
-> [!TIP]  
-> For a clean browser-based log viewer with real-time stats and search, check out [Dozzle Setup Guide](dozzle.md).
+👉 For advanced features and remote access across your home network, see the **[Dozzle Monitoring Guide](dozzle.md)**.
 
 ---
 

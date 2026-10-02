@@ -30,6 +30,17 @@ services:
       - ./config:/config
       - ./data:/opt/valheim
     restart: unless-stopped
+
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "${DOZZLE_PORT:-8080}:8080"
+    environment:
+      - DOZZLE_ENABLE_ACTIONS=true
+    restart: unless-stopped
 ```
 
 ---
@@ -126,6 +137,33 @@ Docker containers are ephemeral: if a container is removed or updated, any files
   - Your host computer reboots.
   
   The server will only remain stopped if you explicitly shut it down using `docker compose down` or the Docker Desktop interface.
+
+---
+
+### Section 6: Dozzle Web Log Viewer Service
+
+The `dozzle` service block manages the real-time web console and container monitor:
+
+* **`  dozzle:`**  
+  The internal identifier for the Dozzle service within Docker Compose.
+
+* **`    image: amir20/dozzle:latest`**  
+  The official, ultra-lightweight (~7 MB) Dozzle image from Docker Hub.
+
+* **`    container_name: dozzle`**  
+  The container name shown in Docker Desktop and `docker compose ps`.
+
+* **`    volumes:`** & **`      - /var/run/docker.sock:/var/run/docker.sock`**  
+  Mounts the host Docker daemon socket into the Dozzle container. This allows Dozzle to stream logs and stats for all running containers and send lifecycle signals (start/stop/restart).
+
+* **`    ports:`** & **`      - "${DOZZLE_PORT:-8080}:8080"`**  
+  Maps the web UI to port `8080` by default (accessible at `http://localhost:8080`). You can customize the host port by setting `DOZZLE_PORT` in [`.env`](../.env).
+
+* **`    environment:`** & **`      - DOZZLE_ENABLE_ACTIONS=true`**  
+  Enables start, stop, restart, and image update action buttons directly in the Dozzle web interface.
+
+* **`    restart: unless-stopped`**  
+  Ensures Dozzle stays running and automatically recovers after a reboot or Docker daemon restart.
 
 ---
 

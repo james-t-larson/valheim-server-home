@@ -15,43 +15,26 @@
 
 ---
 
-## 🚀 Setting Up Dozzle (from [dozzle.dev](https://dozzle.dev))
+## 🚀 Starting Dozzle
 
-Setting up Dozzle takes less than 30 seconds. You can run it either as a standalone one-liner command or add it directly to your `docker-compose.yml`.
+Dozzle is built directly into [`docker-compose.yml`](../docker-compose.yml) and starts automatically whenever you launch the Valheim server!
 
-### Option 1: Standalone Docker Run Command (Recommended)
+### Automatic Startup with Docker Compose (Default)
 
-To run Dozzle with **Container Actions** enabled (allowing you to Start, Stop, and Restart containers from the web browser UI), run:
+Whenever you start your server with `./start.sh` or `docker compose up -d`, Docker Compose starts both `valheim-server` and `dozzle` together in the background:
 
 ```bash
-docker run --name dozzle -d \
-  --volume=/var/run/docker.sock:/var/run/docker.sock \
-  -p 8080:8080 \
-  amir20/dozzle:latest \
-  --enable-actions
+docker compose up -d
 ```
 
-*(You can also use the environment variable `-e DOZZLE_ENABLE_ACTIONS=true` instead of the `--enable-actions` flag).*
+Both containers will start up, and Dozzle will immediately begin streaming server output.
 
-#### What this command does:
-* `--name dozzle`: Names the container `dozzle`.
-* `-d`: Runs the container in the background (detached mode).
-* `--volume=/var/run/docker.sock:/var/run/docker.sock`: Mounts the host Docker socket so Dozzle can read container events and send lifecycle commands (start/stop/restart).
-* `-p 8080:8080`: Forwards port `8080` from your host computer into the container.
-* `amir20/dozzle:latest`: Pulls the official, lightweight image from Docker Hub.
-* `--enable-actions`: **Enables container management in the web UI** (Start, Stop, Restart, and Update).
-
----
-
-### Option 2: Add Dozzle to `docker-compose.yml`
-
-If you want Dozzle to automatically start and stop alongside your Valheim server, you can add a `dozzle` service block to your [`docker-compose.yml`](../docker-compose.yml):
+#### Compose Configuration
+Here is the `dozzle` service definition pre-configured in [`docker-compose.yml`](../docker-compose.yml):
 
 ```yaml
 services:
-  valheim:
-    image: ghcr.io/community-valheim-tools/valheim-server
-    # ... (existing valheim configuration) ...
+  # ... valheim service ...
 
   dozzle:
     image: amir20/dozzle:latest
@@ -59,15 +42,32 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - "8080:8080"
+      - "${DOZZLE_PORT:-8080}:8080"
     environment:
       - DOZZLE_ENABLE_ACTIONS=true
     restart: unless-stopped
 ```
 
-Then start both services with:
+#### What this configuration does:
+* **`image: amir20/dozzle:latest`**: Pulls the official, lightweight image from Docker Hub.
+* **`container_name: dozzle`**: Names the container `dozzle` for easy identification.
+* **`volumes: - /var/run/docker.sock:/var/run/docker.sock`**: Mounts the host Docker socket so Dozzle can read container events and send lifecycle commands (start/stop/restart).
+* **`ports: - "${DOZZLE_PORT:-8080}:8080"`**: Forwards port `8080` (or your custom `DOZZLE_PORT` from `.env`) from your host computer into the container.
+* **`environment: - DOZZLE_ENABLE_ACTIONS=true`**: **Enables container management in the web UI** (Start, Stop, Restart, and Update).
+* **`restart: unless-stopped`**: Automatically restarts Dozzle if it crashes or when your system reboots.
+
+---
+
+### Alternative: Standalone Docker Run Command
+
+If you ever wish to run Dozzle outside Docker Compose as an independent container, you can launch it with:
+
 ```bash
-docker compose up -d
+docker run --name dozzle -d \
+  --volume=/var/run/docker.sock:/var/run/docker.sock \
+  -p 8080:8080 \
+  -e DOZZLE_ENABLE_ACTIONS=true \
+  amir20/dozzle:latest
 ```
 
 ---
@@ -167,28 +167,45 @@ When reviewing logs in Dozzle:
 
 ### Changing the Port
 If port `8080` is already used by another application on your computer:
-* Change the host port mapping to another port like `8888`:
+* **With Docker Compose**:
+  Add or edit `DOZZLE_PORT` in your [`.env`](../.env) file:
+  ```dotenv
+  DOZZLE_PORT=8888
+  ```
+  Then recreate the Dozzle container:
+  ```bash
+  docker compose up -d dozzle
+  ```
+* **With Standalone Docker**:
   ```bash
   docker run --name dozzle -d \
     --volume=/var/run/docker.sock:/var/run/docker.sock \
     -p 8888:8080 \
+    -e DOZZLE_ENABLE_ACTIONS=true \
     amir20/dozzle:latest
   ```
-* Access it at `http://localhost:8888` (or `http://<HOST-IP>:8888`).
+* Access Dozzle at `http://localhost:8888` (or `http://<HOST-IP>:8888`).
+
+### Managing Dozzle with Docker Compose
+* **View Dozzle logs**: `docker compose logs -f dozzle`
+* **Restart Dozzle**: `docker compose restart dozzle`
+* **Stop Dozzle only**: `docker compose stop dozzle`
+* **Start Dozzle only**: `docker compose start dozzle`
 
 ### Read-Only Mode (View-Only / Disables Actions)
-If you do not want container actions enabled and prefer Dozzle to have strictly view-only access, omit `--enable-actions` and mount the Docker socket as read-only (`:ro`):
-```bash
-docker run --name dozzle -d \
-  --volume=/var/run/docker.sock:/var/run/docker.sock:ro \
-  -p 8080:8080 \
-  amir20/dozzle:latest
-```
-
-### Stopping or Removing Dozzle
-* **Stop**: `docker stop dozzle`
-* **Restart**: `docker start dozzle`
-* **Remove**: `docker rm -f dozzle`
+If you prefer Dozzle to have strictly view-only access without container management buttons:
+* In [`docker-compose.yml`](../docker-compose.yml), remove `DOZZLE_ENABLE_ACTIONS=true` (or set it to `false`), and mount the socket with `:ro`:
+  ```yaml
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+  ```
+* Or in standalone Docker:
+  ```bash
+  docker run --name dozzle -d \
+    --volume=/var/run/docker.sock:/var/run/docker.sock:ro \
+    -p 8080:8080 \
+    amir20/dozzle:latest
+  ```
 
 ---
 

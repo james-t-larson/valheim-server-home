@@ -22,10 +22,11 @@ Whether you want a persistent world for you and your friends so anyone can play 
 ### Daily Commands Cheat Sheet
 | Task | Command |
 | :--- | :--- |
-| **Start Server** | `docker compose up -d` (or `./start.sh`) |
+| **Start Server & Web Viewer** | `docker compose up -d` (or `./start.sh`) |
 | **Check Status** | `docker compose ps` |
-| **View Live Logs** | `docker compose logs -f` |
-| **Stop Server Safely** | `docker compose down` |
+| **Web Log Viewer (Dozzle)** | `http://localhost:8080` |
+| **CLI Live Logs** | `docker compose logs -f` |
+| **Stop Server & Tools** | `docker compose down` |
 | **Update Server & Game** | `docker compose pull && docker compose up -d` |
 
 ---
@@ -48,20 +49,10 @@ To keep things organized and easy to navigate, detailed instructions have been b
 
 ## 📊 Live Web Monitoring with Dozzle
 
-Instead of watching logs in a terminal window, you can use [Dozzle](https://dozzle.dev)—a lightweight (~7 MB), real-time, browser-based log viewer and container monitor.
+Instead of watching logs solely in a terminal window, [Dozzle](https://dozzle.dev) is **built directly into [`docker-compose.yml`](docker-compose.yml)**! It is a lightweight (~7 MB), real-time, browser-based log viewer and container monitor.
 
-### Setting Up Dozzle
-Following the instructions from [dozzle.dev](https://dozzle.dev), you can launch Dozzle with container management actions (Start, Stop, Restart) enabled with a single command:
-
-```bash
-docker run --name dozzle -d \
-  --volume=/var/run/docker.sock:/var/run/docker.sock \
-  -p 8080:8080 \
-  amir20/dozzle:latest \
-  --enable-actions
-```
-
-*(Note: `--enable-actions` enables container start/stop/restart buttons in the Dozzle web UI. You can also set this via `-e DOZZLE_ENABLE_ACTIONS=true` or in [`docker-compose.yml`](docs/configuration.md)—see [Dozzle Guide](docs/dozzle.md) for details).*
+### Starts Automatically
+Dozzle spins up alongside your Valheim server automatically whenever you run `./start.sh` or `docker compose up -d`. Container actions (Start, Stop, Restart) are pre-enabled so you can manage your server right from your browser.
 
 ### Accessing Dozzle from a Local Machine
 
