@@ -4,3 +4,6 @@ data/
 # Environment variables and secrets
 .env
 
+# Playit.gg persistent agent credentials
+config/playit/
+

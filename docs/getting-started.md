@@ -44,13 +44,14 @@ The script guides you through configuring all essential server parameters (press
 * **Public Visibility**: Default `true` (set `false` to hide from the community list).
 * **Crossplay**: Default `false` (set `true` to enable Microsoft PlayFab crossplay for Xbox & PC Game Pass).
 * **Steam Platform**: Default `linux64`.
+* **Playit.gg Secret Key**: Default empty (leave blank to claim via web, or paste your account secret key).
 
 ### What `start.sh` does automatically:
 1. Collects and validates your answers.
 2. Writes persistent settings to `~/.bashrc`.
 3. Creates a local [`.env`](../.env) file so Docker Compose works consistently.
 4. Exports variables to your current shell.
-5. Launches both the Valheim server and the Dozzle log viewer in background daemon mode (`docker compose up -d`).
+5. Launches the Valheim server, Dozzle log viewer, and Playit tunnel agent concurrently (`docker compose up -d`).
 
 > [!NOTE]  
 > The very first time you launch the server, Docker downloads the image and Steam downloads the Valheim game server files (~1–2 GB total). This usually takes **2 to 4 minutes**. Wait until you see `Game server connected` in the logs before connecting.
@@ -64,30 +65,37 @@ To check if the containers are running:
 docker compose ps
 ```
 
-Under the **STATUS** column, you should see both `valheim-server` and `dozzle` marked as `Up` (e.g. `Up 2 minutes`).
+Under the **STATUS** column, you should see `valheim-server`, `dozzle`, and `playit-agent` marked as `Up` (e.g. `Up 2 minutes`).
 
 ---
 
-## 📜 Step 4: Viewing Server Logs
+## 📜 Step 4: Viewing Server Logs & Playit Claim URL
 
-You can view your server logs using either your web browser or terminal:
+You can view your server logs and claim your Playit.gg tunnel using either your web browser or terminal:
 
 ### Option A: Web Browser via Dozzle (Recommended)
 Open your browser and navigate to:
 ```text
 http://localhost:8080
 ```
-Dozzle launches automatically alongside your server. It provides real-time log streaming, search, memory and CPU stats, and container controls. Simply click **`valheim-server`** to watch boot progress and player events.
+Dozzle launches automatically alongside your server. It provides real-time log streaming, search, memory and CPU stats, and container controls.
+* Click **`valheim-server`** to watch boot progress and player events.
+* Click **`playit-agent`** to view your **Playit.gg claim URL** (e.g. `https://playit.gg/claim/...`) to set up zero-port-forwarding Internet play.
 
 ### Option B: Terminal CLI
 To stream live logs in your terminal:
 ```bash
 docker compose logs -f
 ```
+Or to check just the Playit claim URL:
+```bash
+docker compose logs playit
+```
 
 * **To exit the log viewer**: Press `Ctrl + C`. This stops viewing logs; the server keeps running uninterrupted in the background.
 
-👉 For advanced features and remote access across your home network, see the **[Dozzle Monitoring Guide](dozzle.md)**.
+👉 For complete instructions on connecting remote players without port forwarding, see the **[Playit.gg Tunnel Guide](playit.md)**.
+👉 For advanced log viewer features, see the **[Dozzle Monitoring Guide](dozzle.md)**.
 
 ---
 
@@ -128,6 +136,7 @@ If you prefer not using the command line:
 ---
 
 ## 📚 Related Guides
+- [Playit.gg Zero-Port-Forwarding Tunnel](playit.md)
 - [Docker Explained in Plain English](docker-explained.md)
 - [Server Configuration & `docker-compose.yml`](configuration.md)
 - [How to Connect to Your Server](connecting.md)

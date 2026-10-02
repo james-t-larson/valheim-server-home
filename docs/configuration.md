@@ -41,6 +41,18 @@ services:
     environment:
       - DOZZLE_ENABLE_ACTIONS=true
     restart: unless-stopped
+
+  playit:
+    image: ghcr.io/playit-cloud/playit-agent:latest
+    container_name: playit-agent
+    network_mode: "service:valheim"
+    environment:
+      - SECRET_KEY=${PLAYIT_SECRET_KEY:-}
+    volumes:
+      - ./config/playit:/etc/playit
+    depends_on:
+      - valheim
+    restart: unless-stopped
 ```
 
 ---
@@ -106,6 +118,7 @@ The `environment` section configures the Valheim server runtime options:
 | `SERVER_PUBLIC` | `false` | `true` lists the server in the public Steam lobby; `false` keeps it unlisted. |
 | `CROSSPLAY` | `false` | Set to `true` to enable Microsoft PlayFab crossplay for Xbox and PC Game Pass players. |
 | `STEAM_PLATFORM` | `linux64` | Target platform architecture for SteamCMD binaries (`linux64`). |
+| `PLAYIT_SECRET_KEY` | *(empty)* | Optional Playit.gg account secret key for headless authentication. Leave blank for web claiming. |
 
 > [!WARNING]  
 > **Valheim Password Rules:**
@@ -167,6 +180,36 @@ The `dozzle` service block manages the real-time web console and container monit
 
 ---
 
+### Section 7: Playit.gg Zero-Port-Forwarding Tunnel Service
+
+The `playit` service block manages the outbound encrypted tunnel that allows Internet players to connect without router port forwarding:
+
+* **`  playit:`**  
+  The internal identifier for the Playit tunnel service.
+
+* **`    image: ghcr.io/playit-cloud/playit-agent:latest`**  
+  The official `playit-agent` image from GitHub Container Registry, supporting both `amd64` and `arm64` (Apple Silicon).
+
+* **`    container_name: playit-agent`**  
+  The container name shown in Docker Desktop and Dozzle.
+
+* **`    network_mode: "service:valheim"`**  
+  Attaches the `playit-agent` container directly into the `valheim` container's network namespace. This allows Playit to target `127.0.0.1:2456` locally without Docker bridge IP discovery issues or publishing extra host ports.
+
+* **`    environment:`** & **`      - SECRET_KEY=${PLAYIT_SECRET_KEY:-}`**  
+  Passes the optional account secret key if defined in [`.env`](../.env). If empty, the agent boots into web claim mode and generates a claim URL in the container logs.
+
+* **`    volumes:`** & **`      - ./config/playit:/etc/playit`**  
+  Mounts the persistent configuration directory to store `playit.toml`. Once claimed, the agent remains permanently authenticated across container updates and system reboots.
+
+* **`    depends_on:`** & **`      - valheim`**  
+  Guarantees that the `valheim` container and its network stack are created before the agent attempts to bind to it.
+
+* **`    restart: unless-stopped`**  
+  Automatically restarts the tunnel agent if the connection drops or the host computer restarts.
+
+---
+
 ## ⚙️ How Configuration Variables are Loaded
 
 When you run `docker compose up -d`, variables are evaluated in this order of priority:
@@ -179,6 +222,7 @@ When you run `docker compose up -d`, variables are evaluated in this order of pr
 
 ## 📚 Related Guides
 - [Quick Start & Operations Guide](getting-started.md)
+- [Playit.gg Zero-Port-Forwarding Tunnel](playit.md)
 - [Docker Explained in Plain English](docker-explained.md)
 - [How to Connect to Your Server](connecting.md)
 - [Monitoring Logs with Dozzle](dozzle.md)

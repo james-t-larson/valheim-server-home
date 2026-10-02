@@ -66,6 +66,7 @@ tells Docker to emulate standard PC hardware on your Mac so the game server runs
 
 ## 📚 Related Guides
 - [Quick Start & Operations Guide](getting-started.md)
+- [Playit.gg Zero-Port-Forwarding Tunnel](playit.md)
 - [Server Configuration & `docker-compose.yml`](configuration.md)
 - [How to Connect to Your Server](connecting.md)
 - [Monitoring Logs with Dozzle](dozzle.md)

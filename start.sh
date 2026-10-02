@@ -98,6 +98,9 @@ esac
 # 8. Steam Platform
 prompt_with_default "8. Steam Platform architecture (linux64/windows)" "linux64" STEAM_PLATFORM
 
+# 9. Playit.gg Secret Key
+prompt_with_default "9. Playit.gg Secret Key (leave empty to claim via web)" "" PLAYIT_SECRET_KEY
+
 echo ""
 echo "Configuration Summary:"
 echo "----------------------------------------------------------"
@@ -109,6 +112,11 @@ echo "  Password:       ********"
 echo "  Public:         $SERVER_PUBLIC"
 echo "  Crossplay:      $CROSSPLAY"
 echo "  Platform:       $STEAM_PLATFORM"
+if [ -n "$PLAYIT_SECRET_KEY" ]; then
+  echo "  Playit Tunnel:  Configured (Secret Key provided)"
+else
+  echo "  Playit Tunnel:  Web claim mode (check Dozzle or logs)"
+fi
 echo "----------------------------------------------------------"
 echo ""
 
@@ -128,6 +136,7 @@ export SERVER_PASS=\"${SERVER_PASS}\"
 export SERVER_PUBLIC=\"${SERVER_PUBLIC}\"
 export CROSSPLAY=\"${CROSSPLAY}\"
 export STEAM_PLATFORM=\"${STEAM_PLATFORM}\"
+export PLAYIT_SECRET_KEY=\"${PLAYIT_SECRET_KEY}\"
 ${CONFIG_BLOCK_END}"
 
 # If block exists in ~/.bashrc, replace it; otherwise append
@@ -175,6 +184,7 @@ SERVER_PUBLIC="${SERVER_PUBLIC}"
 CROSSPLAY="${CROSSPLAY}"
 STEAM_PLATFORM="${STEAM_PLATFORM}"
 DOZZLE_PORT="${DOZZLE_PORT:-8080}"
+PLAYIT_SECRET_KEY="${PLAYIT_SECRET_KEY}"
 EOF
 echo "Saved local environment file ($ENV_FILE)."
 
@@ -188,6 +198,7 @@ export SERVER_PUBLIC
 export CROSSPLAY
 export STEAM_PLATFORM
 export DOZZLE_PORT="${DOZZLE_PORT:-8080}"
+export PLAYIT_SECRET_KEY
 
 echo "Environment variables set successfully!"
 echo ""
@@ -204,6 +215,7 @@ echo ""
 echo "Helpful tips:"
 echo "  • View live logs (CLI):  docker compose logs -f"
 echo "  • Web log viewer:        http://localhost:${DOZZLE_PORT:-8080} (Dozzle)"
+echo "  • Playit.gg claim URL:   docker compose logs playit (or view playit-agent in Dozzle)"
 echo "  • Stop the server:       docker compose down"
 echo "  • Restart the server:    docker compose restart"
 echo ""

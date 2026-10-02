@@ -28,7 +28,8 @@ While the upstream [`valheim-server-docker`](https://github.com/community-valhei
 1. **Interactive Setup Script (`./start.sh`)**: Prompts you for basic settings (server name, world name, password, crossplay, port) and auto-generates your `.env` configuration file.
 2. **Pre-configured `docker-compose.yml`**: Configured with persistent volumes (`config/` and `data/`), proper permissions (`CAP_SYS_NICE`), and platform emulation for Apple Silicon Macs (`linux/amd64`).
 3. **Live Web Log Viewer**: Bundles [Dozzle](https://dozzle.dev) on port 8080 out of the box so you can view live console logs and monitor container CPU/RAM directly in your web browser.
-4. **Comprehensive Documentation**: Plain-English guides for first-time Docker users, networking, backups, and troubleshooting.
+4. **Zero-Port-Forwarding Tunnel**: Pre-integrates [Playit.gg](https://playit.gg) via an official sidecar container so friends can join over the Internet without router port forwarding or exposing your home IP.
+5. **Comprehensive Documentation**: Plain-English guides for first-time Docker users, networking, backups, and troubleshooting.
 
 For advanced configurations, environment variables, or custom hook scripts, check out the [upstream repository on GitHub](https://github.com/community-valheim-tools/valheim-server-docker).
 
@@ -53,6 +54,7 @@ For advanced configurations, environment variables, or custom hook scripts, chec
 | **Start Server & Web Viewer** | `docker compose up -d` (or `./start.sh`) |
 | **Check Status** | `docker compose ps` |
 | **Web Log Viewer (Dozzle)** | `http://localhost:8080` |
+| **Playit Claim / Tunnel Logs** | `docker compose logs playit` |
 | **CLI Live Logs** | `docker compose logs -f` |
 | **Stop Server & Tools** | `docker compose down` |
 | **Update Server & Game** | `docker compose pull && docker compose up -d` |
@@ -66,6 +68,7 @@ To keep things organized and easy to navigate, detailed instructions have been b
 | Guide | Description |
 | :--- | :--- |
 | 🚀 **[Quick Start & Operations Guide](docs/getting-started.md)** | Step-by-step startup, interactive setup, stopping, updates, and using the Docker Desktop GUI. |
+| 🛡️ **[Playit.gg Zero-Port-Forwarding Tunnel](docs/playit.md)** | Connect friends across the Internet without router port forwarding or exposing home IP (CGNAT bypass). |
 | 💡 **[Docker Explained in Plain English](docs/docker-explained.md)** | What Docker is, images vs. containers vs. volumes, and Apple Silicon Mac emulation. |
 | 🔍 **[Server Configuration & `docker-compose.yml`](docs/configuration.md)** | Line-by-line breakdown of configuration settings, ports, and environment variables. |
 | 🎮 **[How to Connect to Your Server](docs/connecting.md)** | Connecting locally (`localhost`), on home Wi-Fi (LAN), over the Internet, and Crossplay. |
@@ -120,10 +123,12 @@ valheim/
 ├── config/               # Persistent server configuration, saves & backups (Docker volume)
 │   ├── adminlist.txt     # Steam64 IDs of server admins
 │   ├── backups/          # Automatic world save zip backups
+│   ├── playit/           # Persistent Playit tunnel credentials (playit.toml)
 │   └── worlds_local/     # Active world save files (.db and .fwl)
 ├── data/                 # Downloaded Valheim game server files (Docker volume)
 └── docs/                 # Detailed documentation guides
     ├── getting-started.md
+    ├── playit.md
     ├── docker-explained.md
     ├── configuration.md
     ├── connecting.md

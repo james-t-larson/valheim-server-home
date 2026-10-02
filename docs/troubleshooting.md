@@ -64,9 +64,9 @@ Run through this 4-step checklist:
 2. **Verify Password Requirements**:
    - The password **must** be at least 5 characters.
    - The password **must NOT** appear inside your `SERVER_NAME` (case-insensitive). For example, if your server name is `Viking Land`, the password cannot be `Viking`.
-3. **Check Router Port Forwarding**:
-   - Ensure UDP ports **2456** and **2457** (and **2458** if using Crossplay) are forwarded to your host computer's local IP address on your home router.
-   - Protocol must be **UDP** (not only TCP).
+3. **Check Connection Route**:
+   - **Using Playit.gg (Recommended)**: Verify the agent is connected with `docker compose logs playit` or in [Dozzle](dozzle.md). Make sure your Playit tunnel points to `127.0.0.1:2456` (UDP) and players join using **Join IP** with the complete domain and port. See the **[Playit.gg Tunnel Guide](playit.md)**.
+   - **Using Direct Port Forwarding**: Ensure UDP ports **2456** and **2457** (and **2458** if using Crossplay) are forwarded to your host computer's local IP address on your home router. Protocol must be **UDP** (not only TCP).
 4. **Check Host Machine Firewall**:
    - **macOS**: Go to **System Settings** > **Network** > **Firewall**. Ensure incoming connections for Docker are allowed or temporarily toggle off for testing.
    - **Windows**: Check **Windows Defender Firewall** > Allow Docker Desktop through public and private networks.
@@ -88,6 +88,7 @@ Run through this 4-step checklist:
 
 ## 📚 Related Guides
 - [Quick Start & Operations Guide](getting-started.md)
+- [Playit.gg Zero-Port-Forwarding Tunnel](playit.md)
 - [Docker Explained in Plain English](docker-explained.md)
 - [Server Configuration & `docker-compose.yml`](configuration.md)
 - [How to Connect to Your Server](connecting.md)

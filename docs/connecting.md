@@ -55,9 +55,30 @@ On the computer running the Docker server:
 
 ---
 
-## 🌐 3. Friends Connecting Over the Internet
+## 🛡️ 3. Friends Connecting Over the Internet via Playit.gg (Recommended — Zero Port Forwarding)
 
-To allow friends outside your home to connect:
+If you cannot configure your home router (or have CGNAT / cellular 5G home internet), use the included **Playit.gg tunnel**:
+
+1. Start your server with `./start.sh` or `docker compose up -d`.
+2. Retrieve your claim link from Dozzle (`http://localhost:8080`) or via `docker compose logs playit`.
+3. In the Playit dashboard, create a **UDP** tunnel pointing to `127.0.0.1:2456`.
+4. Copy the public address assigned to your tunnel (e.g., `hearth-viking.gl.at.ply.gg:28491`).
+5. Tell your friends to connect in Valheim:
+   - Go to **Join Game** > **Join IP**.
+   - Enter:
+     ```text
+     <subdomain>.gl.at.ply.gg:<port>
+     ```
+     *(Example: `hearth-viking.gl.at.ply.gg:28491`)*
+   - Enter your server password.
+
+👉 For complete step-by-step setup details, see the **[Playit.gg Tunnel Guide](playit.md)**.
+
+---
+
+## 🌐 4. Friends Connecting Over the Internet via Traditional Port Forwarding
+
+If you prefer direct IP routing without a proxy tunnel:
 
 ### Step 1: Configure Port Forwarding on Your Router
 Because home routers block incoming traffic by default, you must tell your router to forward Valheim game packets to the specific computer running your Docker server:
@@ -83,7 +104,7 @@ Tell your friends to join using:
 
 ---
 
-## 🎮 4. Crossplay (Xbox & PC Game Pass)
+## 🎮 5. Crossplay (Xbox & PC Game Pass)
 
 If your server has crossplay enabled (`CROSSPLAY=true` in [`docker-compose.yml`](configuration.md)):
 1. Start the server and view the logs:
@@ -100,6 +121,7 @@ If your server has crossplay enabled (`CROSSPLAY=true` in [`docker-compose.yml`]
 
 ## 📚 Related Guides
 - [Quick Start & Operations Guide](getting-started.md)
+- [Playit.gg Zero-Port-Forwarding Tunnel](playit.md)
 - [Server Configuration & `docker-compose.yml`](configuration.md)
 - [Monitoring Logs with Dozzle](dozzle.md)
 - [World Backups & Restoration](backups.md)

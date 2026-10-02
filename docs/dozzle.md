@@ -160,6 +160,10 @@ When reviewing logs in Dozzle:
    ```text
    World save started ... World saved in ... ms
    ```
+4. **Playit Tunnel Claim URL**: Click the **`playit-agent`** container in the sidebar to retrieve your one-time claim link:
+   ```text
+   Visit to claim agent: https://playit.gg/claim/xxxxxxxx-xxxx
+   ```
 
 ---
 
@@ -211,6 +215,7 @@ If you prefer Dozzle to have strictly view-only access without container managem
 
 ## 📚 Related Guides
 - [Quick Start & Operations Guide](getting-started.md)
+- [Playit.gg Zero-Port-Forwarding Tunnel](playit.md)
 - [Server Configuration & `docker-compose.yml`](configuration.md)
 - [How to Connect to Your Server](connecting.md)
 - [World Backups & Restoration](backups.md)
