@@ -13,9 +13,22 @@ The server image (`ghcr.io/community-valheim-tools/valheim-server`) comes with a
   config/backups/
   ```
 * **How it works**:
-  - The server periodically compresses your active world save files into timestamped `.zip` or `.tar.gz` archives.
+  - The server periodically compresses your active world save files into timestamped `.zip` archives.
   - Backups are stored in your local [`config/backups`](../config) folder on your host machine.
   - Because [`config`](../config) is a mapped Docker volume, your backups survive container restarts, upgrades, and system reboots.
+
+### Backup Configuration Options
+
+You can customize backup schedules and retention in [`.env`](../.env) or [`docker-compose.yml`](../docker-compose.yml):
+
+| Variable | Default | Purpose |
+| :--- | :--- | :--- |
+| `BACKUPS` | `true` | Enables or disables periodic automated backups. |
+| `BACKUPS_MAX_AGE` | `3` | **Retention period in days.** Backups older than this number of days are automatically deleted. Increase this (e.g. `30` or `90`) to retain backups longer. |
+| `BACKUPS_MAX_COUNT` | `0` | Maximum number of backup files to keep (`0` means unlimited, constrained only by age). |
+| `BACKUPS_CRON` | `5 * * * *` | Cron schedule for taking backups (default: hourly at minute 5). |
+| `BACKUPS_IF_IDLE` | `true` | When `false`, pauses backup creation when no players are connected to save disk space. |
+| `BACKUPS_IDLE_GRACE_PERIOD` | `3600` | Grace period in seconds to keep taking backups after the last player disconnects. |
 
 ---
 

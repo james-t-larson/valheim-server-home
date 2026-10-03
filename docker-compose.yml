@@ -17,6 +17,13 @@ services:
       - SERVER_PUBLIC=${SERVER_PUBLIC:-false}
       - CROSSPLAY=${CROSSPLAY:-false} # Set to true if friends are playing on Xbox or PC Game Pass
       - STEAM_PLATFORM=${STEAM_PLATFORM:-linux64}
+      # Backup Configuration
+      - BACKUPS=${BACKUPS:-true}
+      - "BACKUPS_CRON=${BACKUPS_CRON:-5 * * * *}"
+      - BACKUPS_MAX_AGE=${BACKUPS_MAX_AGE:-3} # Days to retain backups
+      - BACKUPS_MAX_COUNT=${BACKUPS_MAX_COUNT:-0} # Max backup files to keep (0 = unlimited)
+      - BACKUPS_IF_IDLE=${BACKUPS_IF_IDLE:-true} # Create backups even when no players are online
+      - BACKUPS_IDLE_GRACE_PERIOD=${BACKUPS_IDLE_GRACE_PERIOD:-3600}
     volumes:
       - ./config:/config
       - ./data:/opt/valheim
@@ -36,7 +43,7 @@ services:
   playit:
     image: ghcr.io/playit-cloud/playit-agent:latest
     container_name: playit-agent
-    network_mode: "service:valheim"
+    network_mode: host
     environment:
       - SECRET_KEY=${PLAYIT_SECRET_KEY:-}
     volumes:

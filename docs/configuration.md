@@ -26,6 +26,12 @@ services:
       - SERVER_PUBLIC=${SERVER_PUBLIC:-false}
       - CROSSPLAY=${CROSSPLAY:-false} # Set to true if friends are playing on Xbox or PC Game Pass
       - STEAM_PLATFORM=${STEAM_PLATFORM:-linux64}
+      - BACKUPS=${BACKUPS:-true}
+      - "BACKUPS_CRON=${BACKUPS_CRON:-5 * * * *}"
+      - BACKUPS_MAX_AGE=${BACKUPS_MAX_AGE:-3}
+      - BACKUPS_MAX_COUNT=${BACKUPS_MAX_COUNT:-0}
+      - BACKUPS_IF_IDLE=${BACKUPS_IF_IDLE:-true}
+      - BACKUPS_IDLE_GRACE_PERIOD=${BACKUPS_IDLE_GRACE_PERIOD:-3600}
     volumes:
       - ./config:/config
       - ./data:/opt/valheim
@@ -119,6 +125,12 @@ The `environment` section configures the Valheim server runtime options:
 | `CROSSPLAY` | `false` | Set to `true` to enable Microsoft PlayFab crossplay for Xbox and PC Game Pass players. |
 | `STEAM_PLATFORM` | `linux64` | Target platform architecture for SteamCMD binaries (`linux64`). |
 | `PLAYIT_SECRET_KEY` | *(empty)* | Optional Playit.gg account secret key for headless authentication. Leave blank for web claiming. |
+| `BACKUPS` | `true` | Enables or disables periodic automated backups. |
+| `BACKUPS_CRON` | `5 * * * *` | Cron schedule for taking backups (default: hourly at minute 5). |
+| `BACKUPS_MAX_AGE` | `3` | Maximum age in days to retain backups before purging. Increase this to keep backups longer. |
+| `BACKUPS_MAX_COUNT` | `0` | Maximum number of backup archives to keep (`0` = unlimited). |
+| `BACKUPS_IF_IDLE` | `true` | When `false`, pauses backup creation when no players are online to save space. |
+| `BACKUPS_IDLE_GRACE_PERIOD` | `3600` | Grace period in seconds to keep backing up after the last player disconnects. |
 
 > [!WARNING]  
 > **Valheim Password Rules:**
