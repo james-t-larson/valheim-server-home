@@ -101,6 +101,9 @@ prompt_with_default "8. Steam Platform architecture (linux64/windows)" "linux64"
 # 9. Playit.gg Secret Key
 prompt_with_default "9. Playit.gg Secret Key (leave empty to claim via web)" "" PLAYIT_SECRET_KEY
 
+# 10. Server Modifiers & Additional Arguments
+prompt_with_default "10. Additional Server Args / Modifiers" "${SERVER_ARGS:--modifier Resources muchmore}" SERVER_ARGS
+
 echo ""
 echo "Configuration Summary:"
 echo "----------------------------------------------------------"
@@ -112,6 +115,7 @@ echo "  Password:       ********"
 echo "  Public:         $SERVER_PUBLIC"
 echo "  Crossplay:      $CROSSPLAY"
 echo "  Platform:       $STEAM_PLATFORM"
+echo "  Server Args:    $SERVER_ARGS"
 if [ -n "$PLAYIT_SECRET_KEY" ]; then
   echo "  Playit Tunnel:  Configured (Secret Key provided)"
 else
@@ -136,6 +140,7 @@ export SERVER_PASS=\"${SERVER_PASS}\"
 export SERVER_PUBLIC=\"${SERVER_PUBLIC}\"
 export CROSSPLAY=\"${CROSSPLAY}\"
 export STEAM_PLATFORM=\"${STEAM_PLATFORM}\"
+export SERVER_ARGS=\"${SERVER_ARGS}\"
 export PLAYIT_SECRET_KEY=\"${PLAYIT_SECRET_KEY}\"
 ${CONFIG_BLOCK_END}"
 
@@ -183,8 +188,17 @@ SERVER_PASS="${SERVER_PASS}"
 SERVER_PUBLIC="${SERVER_PUBLIC}"
 CROSSPLAY="${CROSSPLAY}"
 STEAM_PLATFORM="${STEAM_PLATFORM}"
+SERVER_ARGS="${SERVER_ARGS}"
 DOZZLE_PORT="${DOZZLE_PORT:-8080}"
 PLAYIT_SECRET_KEY="${PLAYIT_SECRET_KEY}"
+
+# Backup Settings
+BACKUPS="${BACKUPS:-true}"
+BACKUPS_CRON="${BACKUPS_CRON:-5 * * * *}"
+BACKUPS_MAX_AGE="${BACKUPS_MAX_AGE:-3}"
+BACKUPS_MAX_COUNT="${BACKUPS_MAX_COUNT:-0}"
+BACKUPS_IF_IDLE="${BACKUPS_IF_IDLE:-true}"
+BACKUPS_IDLE_GRACE_PERIOD="${BACKUPS_IDLE_GRACE_PERIOD:-3600}"
 EOF
 echo "Saved local environment file ($ENV_FILE)."
 
@@ -197,6 +211,7 @@ export SERVER_PASS
 export SERVER_PUBLIC
 export CROSSPLAY
 export STEAM_PLATFORM
+export SERVER_ARGS
 export DOZZLE_PORT="${DOZZLE_PORT:-8080}"
 export PLAYIT_SECRET_KEY
 

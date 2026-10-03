@@ -45,6 +45,7 @@ The script guides you through configuring all essential server parameters (press
 * **Crossplay**: Default `false` (set `true` to enable Microsoft PlayFab crossplay for Xbox & PC Game Pass).
 * **Steam Platform**: Default `linux64`.
 * **Playit.gg Secret Key**: Default empty (leave blank to claim via web, or paste your account secret key).
+* **Server Modifiers / Arguments**: Default `-modifier Resources muchmore` (doubles default drop rate; 2x resources).
 
 ### What `start.sh` does automatically:
 1. Collects and validates your answers.

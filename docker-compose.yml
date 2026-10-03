@@ -17,6 +17,7 @@ services:
       - SERVER_PUBLIC=${SERVER_PUBLIC:-false}
       - CROSSPLAY=${CROSSPLAY:-false} # Set to true if friends are playing on Xbox or PC Game Pass
       - STEAM_PLATFORM=${STEAM_PLATFORM:-linux64}
+      - SERVER_ARGS=${SERVER_ARGS:--modifier Resources muchmore} # World modifier doubling drop rate
       # Backup Configuration
       - BACKUPS=${BACKUPS:-true}
       - "BACKUPS_CRON=${BACKUPS_CRON:-5 * * * *}"
